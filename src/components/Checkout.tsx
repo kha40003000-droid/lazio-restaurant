@@ -15,6 +15,7 @@ import {
   MessageCircle,
   RotateCcw,
   Lock,
+  AlertCircle,
 } from 'lucide-react';
 import type { CartItem, CustomerInfo, SavedOrder, GpsLocation, ReceiptPayload } from '../types';
 import { useCart } from '../cart';
@@ -46,7 +47,6 @@ const emptyCustomer: CustomerInfo = {
   payment: 'cash',
 };
 
-// دالة مصلحة بالكامل لإنشاء رابط الفاتورة التفاعلية بدون تلف البيانات
 function compressOrderUrl(payload: ReceiptPayload): string {
   try {
     const dataStr = encodeOrderData(payload);
@@ -251,22 +251,32 @@ export function Checkout({ onBack }: Props) {
                 />
               </div>
 
-              <button
-                onClick={() => setMapOpen(true)}
-                className="flex w-full items-center justify-between rounded-xl border border-gold-400/30 bg-gold-400/5 px-4 py-3 text-sm font-semibold text-gold-200 transition-all hover:border-gold-400/60 hover:bg-gold-400/10"
-              >
-                <span className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  تحديد الموقع على الخريطة
-                </span>
-                {gps ? (
-                  <span className="text-xs text-gold-300">
-                    {distanceM != null ? formatDistance(distanceM) : ''}
+              <div className="space-y-2">
+                <button
+                  onClick={() => setMapOpen(true)}
+                  className="flex w-full items-center justify-between rounded-xl border border-gold-400/30 bg-gold-400/5 px-4 py-3 text-sm font-semibold text-gold-200 transition-all hover:border-gold-400/60 hover:bg-gold-400/10"
+                >
+                  <span className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    تحديد الموقع على الخريطة
                   </span>
-                ) : (
-                  <span className="text-xs text-cream-300/50">غير محدد</span>
-                )}
-              </button>
+                  {gps ? (
+                    <span className="text-xs text-gold-300 font-medium">
+                      المسافة: {distanceM != null ? formatDistance(distanceM) : ''} (التوصيل يُحدد مع المطعم)
+                    </span>
+                  ) : (
+                    <span className="text-xs text-cream-300/50">غير محدد</span>
+                  )}
+                </button>
+
+                {/* رسالة التنبيه المثبتة تحت اللوكيشن مباشرة */}
+                <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-200/90 leading-relaxed">
+                  <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                  <span>
+                    السعر النهائي لا يشمل التوصيل، حساب التوصيل يتم تحديده مع المطعم عبر الـ WhatsApp. لا يتم حساب التوصيل تلقائياً إلا بالتنسيق المباشر.
+                  </span>
+                </div>
+              </div>
             </FormSection>
 
             <FormSection title="طريقة الدفع">
