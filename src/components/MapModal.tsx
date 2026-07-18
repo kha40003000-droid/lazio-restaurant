@@ -112,7 +112,8 @@ export function MapModal({ open, onClose, onConfirm, initial }: Props) {
 
   const confirm = () => {
     if (!loc || !info) return;
-    onConfirm(loc, info.fee, info.distanceM);
+    // هنا بنبعت تكلفة التوصيل 0 للمطعم دايماً
+    onConfirm(loc, 0, info.distanceM);
     onClose();
   };
 
@@ -174,8 +175,9 @@ export function MapModal({ open, onClose, onConfirm, initial }: Props) {
             </div>
             <div className="mt-2 flex items-center justify-between">
               <span className="text-sm text-cream-200/80">رسوم التوصيل</span>
+              {/* تعديل العرض هنا ليصبح ثابت 0 ج.م */}
               <span className="font-display text-lg font-black text-gold-300">
-                {info.fee} ج.م
+                0 ج.م
               </span>
             </div>
             <p className="mt-2 break-all text-[11px] text-cream-300/50" dir="ltr">
