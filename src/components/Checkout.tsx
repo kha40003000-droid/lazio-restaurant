@@ -46,41 +46,13 @@ const emptyCustomer: CustomerInfo = {
   payment: 'cash',
 };
 
-// دالة ذكية لضغط بيانات الفاتورة وتحويلها إلى رابط قصير ومختصر جداً للواتساب
+// دالة مصلحة بالكامل لإنشاء رابط الفاتورة التفاعلية بدون تلف البيانات
 function compressOrderUrl(payload: ReceiptPayload): string {
   try {
-    const tinyData = {
-      c: {
-        n: payload.customer.name,
-        p: payload.customer.phone,
-        s: payload.customer.street,
-        h: payload.customer.house || '',
-        f: payload.customer.floor || '',
-        a: payload.customer.apartment || '',
-        l: payload.customer.landmark || '',
-        g: payload.customer.payment,
-      },
-      i: payload.items.map((it) => ({
-        id: it.id,
-        n: it.name,
-        s: it.size,
-        q: it.qty,
-        t: it.lineTotal,
-        cr: it.stuffedCrust ? 1 : 0,
-        ra: it.sauces?.ranch ? 1 : 0,
-        bb: it.sauces?.bbq ? 1 : 0,
-        sh: it.sharqiPizza ? 1 : 0,
-      })),
-      r: payload.orderRefCode,
-      t: payload.orderTime,
-    };
-    
-    // تحويل البيانات لـ Base64 مضغوط ومختصر
-    const compressedStr = btoa(encodeURIComponent(JSON.stringify(tinyData)));
-    return `${window.location.origin}?v=${compressedStr.substring(0, 15)}`;
+    const dataStr = encodeOrderData(payload);
+    return `${window.location.origin}?orderData=${dataStr}`;
   } catch {
-    // في حالة حدوث أي مشكلة يرجع الرابط العادي كخطة بديلة
-    return `${window.location.origin}?orderData=${encodeOrderData(payload)}`;
+    return window.location.origin;
   }
 }
 
@@ -97,8 +69,6 @@ export function Checkout({ onBack }: Props) {
   const [gps, setGps] = useState<GpsLocation | null>(null);
   const [distanceM, setDistanceM] = useState<number | null>(null);
   
-  // تعديل: تم جعل رسوم التوصيل الافتراضية 0 بناءً على طلبك
-  const [deliveryFee, setDeliveryFee] = useState(0);
   const [mapOpen, setMapOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [orderRefCode] = useState(() =>
@@ -115,7 +85,6 @@ export function Checkout({ onBack }: Props) {
     }
   }, [customer]);
 
-  // تعديل: التوصيل أصبح مجاني دائماً ولا يضاف إلى الإجمالي
   const total = subtotal; 
   
   const update = (k: keyof CustomerInfo, v: string) =>
@@ -123,8 +92,6 @@ export function Checkout({ onBack }: Props) {
 
   const onConfirmGps = (loc: GpsLocation, fee: number, dist: number) => {
     setGps(loc);
-    // تعديل: حتى لو تم تحديد اللوكيشن، تظل الرسوم 0
-    setDeliveryFee(0);
     setDistanceM(dist);
   };
 
@@ -132,7 +99,7 @@ export function Checkout({ onBack }: Props) {
     () => ({
       customer,
       items,
-      deliveryFee: 0, // تعديل لحماية الحسابات
+      deliveryFee: 0, 
       total,
       subtotal,
       gps,
@@ -166,13 +133,11 @@ export function Checkout({ onBack }: Props) {
       orderRefCode,
     });
 
-    // تعديل: استخدام الدالة الذكية لإنتاج لينك قصير جداً ومحترم
     const receiptUrl = compressOrderUrl(receiptPayload);
     
     const summary = buildOrderSummary(
       customer,
       items,
-      0, // رسوم التوصيل صفر
       total,
       gps,
       distanceM,
@@ -184,7 +149,7 @@ export function Checkout({ onBack }: Props) {
     window.open(url, '_blank');
 
     setSubmitting(false);
-    alert('تم تجهيز الطلب! تم فتح واتساب مع تفاصيل الطلب ورابط الفاتورة التفاعلية القصير.');
+    alert('تم تجهيز الطلب! تم فتح واتساب مع تفاصيل الطلب ورابط الفاتورة التفاعلية.');
   };
 
   const lastOrder = loadLastOrder<SavedOrder>();
@@ -193,7 +158,6 @@ export function Checkout({ onBack }: Props) {
     setCustomer(lastOrder.customer);
     if (lastOrder.gps) {
       setGps(lastOrder.gps);
-      setDeliveryFee(0); // تظل صفر عند الاستعادة
       setDistanceM(computeDeliveryFee(lastOrder.gps).distanceM);
     }
   };
@@ -297,7 +261,6 @@ export function Checkout({ onBack }: Props) {
                 </span>
                 {gps ? (
                   <span className="text-xs text-gold-300">
-                    مـجـانـاً ·{' '}
                     {distanceM != null ? formatDistance(distanceM) : ''}
                   </span>
                 ) : (
@@ -365,12 +328,13 @@ export function Checkout({ onBack }: Props) {
                 customer={customer}
                 items={items}
                 subtotal={subtotal}
-                deliveryFee={0} // إظهار التوصيل بصفر
+                deliveryFee={0} 
                 total={total}
                 gps={gps}
                 distanceM={distanceM}
                 orderTime={orderTime}
                 orderRefCode={orderRefCode}
+                customDeliveryLabel="يتم حساب التوصيل مع المطعم عبر الواتس اب والسعر هذا لا يشمل التوصيل"
               />
             </div>
           </div>
@@ -480,7 +444,6 @@ function PayOption({
 function buildOrderSummary(
   customer: CustomerInfo,
   items: CartItem[],
-  deliveryFee: number,
   total: number,
   gps: GpsLocation | null,
   distanceM: number | null,
@@ -520,14 +483,12 @@ function buildOrderSummary(
     lines.push(line);
   });
   lines.push('━━━━━━━━━━━━━━━');
-  lines.push(`الإجمالي الفرعي: ${items.reduce((s, i) => s + i.lineTotal, 0)} ج.م`);
-  lines.push(`رسوم التوصيل: مـجـانـاً`);
-  lines.push(`*الإجمالي الحالي: ${total} ج.م*`);
+  lines.push(`الحساب الإجمالي للمنتجات: ${total} ج.م`);
+  lines.push(`*التوصيل:* يتم حساب التوصيل مع المطعم عبر الواتس اب والسعر هذا لا يشمل التوصيل`);
   lines.push(
     `طريقة الدفع: ${customer.payment === 'cash' ? 'كاش عند الاستلام' : 'فيزا مع الدليفري عند الاستلام'}`,
   );
   lines.push('━━━━━━━━━━━━━━━');
-  lines.push('وقت التوصيل المتوقع: من 30 إلى 60 دقيقة');
   lines.push(`🔗 رابط عرض الفاتورة التفاعلية: ${receiptUrl}`);
   return lines.join('\n');
 }
