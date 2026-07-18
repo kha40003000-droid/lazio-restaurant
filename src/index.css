@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: #070707;
+  color: #FAF5E8;
+  font-family: 'Cairo', 'Tajawal', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── Scrollbars ─────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #070707; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #8A7048, #5E4B30);
+  border-radius: 8px;
+  border: 2px solid #070707;
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #C5A880, #8A7048); }
+
+/* ─── Leaflet light overrides ─────────────────── */
+.leaflet-container { background: #f5f3ee !important; font-family: 'Cairo', sans-serif !important; }
+.leaflet-control-attribution { background: rgba(255,255,255,0.85) !important; color: #6b6b6b !important; border: none !important; }
+.leaflet-control-zoom a { background: #fff !important; color: #8C1D1D !important; border-color: #ddd !important; }
+.leaflet-control-zoom a:hover { background: #f5f3ee !important; }
+
+/* ─── Selection ──────────────────────────────── */
+::selection { background: rgba(140,29,29,0.35); color: #FFFDF7; }
+
+/* ─── Gold shimmer text ──────────────────────── */
+.shimmer-text {
+  background: linear-gradient(90deg, #8A7048 0%, #E6D9B8 40%, #C5A880 60%, #8A7048 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3.5s linear infinite;
+}
+@keyframes shimmer { to { background-position: 200% center; } }
+
+/* ─── Gradient border utility ────────────────── */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(197,168,128,0.50), rgba(197,168,128,0.04), rgba(197,168,128,0.32));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ─── Paper receipt texture ──────────────────── */
+.paper-receipt {
+  background-color: #F7F0DC;
+  background-image:
+    radial-gradient(ellipse at 15% 20%, rgba(197,168,128,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 75%, rgba(120,90,30,0.07) 0%, transparent 55%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 23px,
+      rgba(90,60,20,0.05) 23px,
+      rgba(90,60,20,0.05) 24px
+    );
+}
+
+/* ─── Zig-zag receipt edges ──────────────────── */
+.receipt-top {
+  position: relative;
+}
+.receipt-top::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background:
+    linear-gradient(-45deg, #F7F0DC 25%, transparent 25%) -8px 0,
+    linear-gradient( 45deg, #F7F0DC 25%, transparent 25%) -8px 0,
+    linear-gradient(-45deg, transparent 75%, #F7F0DC 75%),
+    linear-gradient( 45deg, transparent 75%, #F7F0DC 75%);
+  background-size: 16px 8px;
+  background-color: transparent;
+}
+.receipt-bottom {
+  position: relative;
+}
+.receipt-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background:
+    linear-gradient(135deg, #F7F0DC 25%, transparent 25%) -8px 0,
+    linear-gradient(225deg, #F7F0DC 25%, transparent 25%) -8px 0,
+    linear-gradient(315deg, transparent 75%, #F7F0DC 75%),
+    linear-gradient(225deg, transparent 75%, #F7F0DC 75%);
+  background-size: 16px 8px;
+  background-color: transparent;
+}
+
+/* ─── Italian flag stripe ────────────────────── */
+.italian-flag {
+  height: 3px;
+  background: linear-gradient(to left, #CE2B37 33.33%, #F4F5F0 33.33%, #F4F5F0 66.66%, #009246 66.66%);
+}
+
+/* ─── Card hover lift ────────────────────────── */
+.card-lift {
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease;
+}
+.card-lift:hover { transform: translateY(-3px); }
+
+img { -webkit-user-drag: none; user-select: none; }
